@@ -14,15 +14,29 @@
 # limitations under the License.
 #
 
+TARGET_KERNEL_SOURCE := kernel
+TARGET_KERNEL_CONFIG := xo_4_android_defconfig
+
 ifeq ($(TARGET_PREBUILT_KERNEL),)
 LOCAL_KERNEL := device/olpc/xo4-kernel/kernel
 else
 LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
 endif
 
-PRODUCT_COPY_FILES := \
+KERNEL_EXTERNAL_MODULES:
+	cd vendor/marvell/generic/sd8787/wlan_src; \
+	make ARCH="arm" CROSS_COMPILE="arm-linux-gnueabi-" KERNELDIR=$(KERNEL_OUT)
+	mv vendor/marvell/generic/sd8787/wlan_src/mlan.ko $(KERNEL_MODULES_OUT)
+	mv vendor/marvell/generic/sd8787/wlan_src/sd8xxx.ko $(KERNEL_MODULES_OUT)/sd8787.ko
+	cd vendor/marvell/generic/sd8787/mbtc_src; \
+	make ARCH="arm" CROSS_COMPILE="arm-linux-gnueabi-" KERNELDIR=$(KERNEL_OUT)
+	mv vendor/marvell/generic/sd8787/mbtc_src/mbt8xxx.ko $(KERNEL_MODULES_OUT)
+
+TARGET_KERNEL_MODULES := KERNEL_EXTERNAL_MODULES
+
+# PRODUCT_COPY_FILES := \
 	$(LOCAL_KERNEL):kernel
 
-PRODUCT_CHARACTERISTICS := tablet
+PRODUCT_CHARACTERISTICS := tablet,nosdcard
 
 $(call inherit-product-if-exists, vendor/olpc/xo4/device-vendor.mk)
